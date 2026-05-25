@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Petualangan Kucing Pintar</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+font-family:'Comic Sans MS',sans-serif;
+overflow:hidden;
+background:linear-gradient(#9be7ff,#d8ffd8);
+height:100vh;
+}
+#loadingScreen{
+position:fixed;
+inset:0;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+background:linear-gradient(#8ee3ff,#fff6b7);
+z-index:999;
+animation:fadeOut 2s forwards;
+animation-delay:2s;
+}
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
+#loadingScreen h1{
+font-size:3rem;
+color:#ff6b6b;
+animation:bounce 1s infinite;
+}
+@keyframes bounce{
+0%,100%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+}
+#mainMenu{
+position:absolute;
+inset:0;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+gap:15px;
+background:rgba(255,255,255,0.4);
+backdrop-filter:blur(5px);
+}
+.menu-btn{
+padding:15px 30px;
+font-size:1.2rem;
+border:none;
+border-radius:20px;
+background:#ffcf5c;
+color:#333;
+cursor:pointer;
+box-shadow:0 4px 8px rgba(0,0,0,.2);
+transition:.3s;
+}
+.menu-btn:hover{transform:scale(1.05)}
+#gameContainer{
+width:100%;
+height:100vh;
+display:none;
+}
+.mode-grid{
+display:grid;
+width:100%;
+height:100%;
+}
+.solo{grid-template-columns:1fr}
+.duel{grid-template-columns:1fr 1fr}
+.squad{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.player-area{
+position:relative;
+overflow:hidden;
+border:3px solid white;
+background:linear-gradient(#7dd3fc,#d9f99d);
+}
+.cloud{
+position:absolute;
+width:120px;
+height:60px;
+background:white;
+border-radius:50px;
+opacity:.8;
+animation:cloudMove 20s linear infinite;
+}
+@keyframes cloudMove{
+from{transform:translateX(-150px)}
+to{transform:translateX(120vw)}
+}
+.ui{
+position:absolute;
+top:10px;
+left:10px;
+z-index:10;
+background:rgba(255,255,255,.7);
+padding:10px;
+border-radius:15px;
+font-size:1rem;
+}
+.cat{
+position:absolute;
+bottom:80px;
+left:50%;
+transform:translateX(-50%);
+font-size:4rem;
+transition:.5s;
+}
+.platforms{
+position:absolute;
+bottom:0;
+width:100%;
+display:flex;
+justify-content:space-around;
+align-items:flex-end;
+padding:20px;
+}
+.platform{
+width:22%;
+height:90px;
+background:#22c55e;
+border-radius:50px;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:1.5rem;
+color:white;
+font-weight:bold;
+cursor:pointer;
+transition:.3s;
+box-shadow:0 5px 10px rgba(0,0,0,.2);
+position:relative;
+}
+.platform:hover{transform:translateY(-5px)}
+.question{
+position:absolute;
+top:90px;
+width:100%;
+text-align:center;
+font-size:2rem;
+font-weight:bold;
+color:#333;
+text-shadow:1px 1px white;
+}
+.popup{
+position:absolute;
+top:45%;
+left:50%;
+transform:translate(-50%,-50%);
+background:white;
+padding:20px 30px;
+border-radius:20px;
+font-size:2rem;
+display:none;
+box-shadow:0 5px 15px rgba(0,0,0,.3);
+z-index:20;
+}
+.controls{
+position:absolute;
+right:10px;
+bottom:10px;
+display:flex;
+gap:10px;
+}
+.control-btn{
+padding:12px 18px;
+font-size:1rem;
+border:none;
+border-radius:15px;
+background:#f472b6;
+color:white;
+}
+.top-buttons{
+position:fixed;
+top:10px;
+right:10px;
+display:flex;
+gap:10px;
+z-index:999;
+}
+.top-buttons button{
+padding:10px;
+border:none;
+border-radius:12px;
+background:#fff;
+font-size:1.2rem;
+cursor:pointer;
+}
+.confetti{
+position:absolute;
+font-size:2rem;
+animation:fall 1s linear forwards;
+}
+@keyframes fall{
+from{transform:translateY(-50px) rotate(0deg);opacity:1}
+to{transform:translateY(300px) rotate(360deg);opacity:0}
+}
+@media(max-width:768px){
+.question{font-size:1.2rem}
+.platform{font-size:1rem;height:70px}
+.cat{font-size:3rem}
+.controls{
+left:50%;
+transform:translateX(-50%);
+right:auto;
+bottom:5px;
+}
+.control-btn{
+padding:15px 20px;
+font-size:1.1rem;
+}
+}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen">
+<h1>🐱 Petualangan Kucing Pintar</h1>
+<p>Loading Game Anak Ceria...</p>
+</div>
+
+<div class="top-buttons">
+<button onclick="toggleAudio()">🔊</button>
+<button onclick="toggleFullscreen()">⛶</button>
+</div>
+
+<div id="mainMenu">
+<h1 style="font-size:3rem;color:#ff6b6b;">🐱 Petualangan Kucing Pintar</h1>
+<button class="menu-btn" onclick="startGame('solo')">Solo Mode</button>
+<button class="menu-btn" onclick="startGame('duel')">Duel Mode</button>
+<button class="menu-btn" onclick="startGame('squad')">Squad Mode</button>
+<button class="menu-btn" onclick="showHowToPlay()">Cara Bermain</button>
+</div>
+
+<div id="gameContainer"></div>
+
+<audio id="bgm" loop autoplay>
+<source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=kids-music-112191.mp3" type="audio/mp3">
+</audio>
+
+<script>
+const questions = [
+{q:'Warna Apel?',choices:['Merah','Biru','Hijau','Ungu'],answer:'Merah'},
+{q:'Angka setelah 2?',choices:['1','2','3','5'],answer:'3'},
+{q:'Bentuk Bola?',choices:['Kotak','Lingkaran','Segitiga','Oval'],answer:'Lingkaran'},
+{q:'Hewan yang mengeong?',choices:['Ayam','Kucing','Ikan','Burung'],answer:'Kucing'},
+{q:'Huruf setelah A?',choices:['B','C','D','E'],answer:'B'},
+{q:'Buah warna kuning?',choices:['Pisang','Apel','Anggur','Semangka'],answer:'Pisang'}
+];
+
+let audioOn = true;
+
+function startGame(mode){
+const container = document.getElementById('gameContainer');
+container.style.display='grid';
+document.getElementById('mainMenu').style.display='none';
+container.className='mode-grid '+mode;
+container.innerHTML='';
+
+let players = 1;
+if(mode==='duel') players=2;
+if(mode==='squad') players=4;
+
+for(let i=1;i<=players;i++){
+createPlayerArea(container,i);
+}
+}
+
+function createPlayerArea(container,playerNum){
+const area = document.createElement('div');
+area.className='player-area';
+
+const cloud = document.createElement('div');
+cloud.className='cloud';
+cloud.style.top='50px';
+area.appendChild(cloud);
+
+let score=0;
+let currentQuestion=randomQuestion();
+
+const ui = document.createElement('div');
+ui.className='ui';
+ui.innerHTML=`🎮 Player ${playerNum}<br>⭐ Score: <span id='score${playerNum}'>0</span>`;
+area.appendChild(ui);
+
+const question = document.createElement('div');
+question.className='question';
+question.innerText=currentQuestion.q;
+area.appendChild(question);
+
+const popup = document.createElement('div');
+popup.className='popup';
+area.appendChild(popup);
+
+const cat = document.createElement('div');
+cat.className='cat';
+cat.innerText=['🐱','😺','😸','🐈'][playerNum-1] || '🐱';
+area.appendChild(cat);
+
+const platforms = document.createElement('div');
+platforms.className='platforms';
+
+currentQuestion.choices.forEach(choice=>{
+const plat = document.createElement('div');
+plat.className='platform';
+plat.innerText=choice;
+
+plat.onclick=()=>{
+cat.style.left=plat.offsetLeft+plat.offsetWidth/2+'px';
+
+if(choice===currentQuestion.answer){
+score++;
+document.getElementById('score'+playerNum).innerText=score;
+cat.innerText='😸';
+popup.innerText='Hebat! 🌟';
+popup.style.display='block';
+createConfetti(area);
+
+setTimeout(()=>{
+popup.style.display='none';
+cat.innerText='🐱';
+currentQuestion=randomQuestion();
+question.innerText=currentQuestion.q;
+updatePlatforms(platforms,currentQuestion,cat,popup,question,playerNum,area,score);
+},1500);
+}else{
+cat.innerText='😿';
+popup.innerText='Coba Lagi 😢';
+popup.style.display='block';
+plat.style.transform='rotate(5deg)';
+setTimeout(()=>{
+popup.style.display='none';
+cat.innerText='🐱';
+plat.style.transform='rotate(0deg)';
+},1200);
+}
+};
+
+platforms.appendChild(plat);
+});
+
+area.appendChild(platforms);
+container.appendChild(area);
+}
+
+function updatePlatforms(platforms,currentQuestion,cat,popup,question,playerNum,area,score){
+platforms.innerHTML='';
+currentQuestion.choices.forEach(choice=>{
+const plat=document.createElement('div');
+plat.className='platform';
+plat.innerText=choice;
+plat.onclick=()=>{
+cat.style.left=plat.offsetLeft+plat.offsetWidth/2+'px';
+if(choice===currentQuestion.answer){
+score++;
+document.getElementById('score'+playerNum).innerText=score;
+cat.innerText='😸';
+popup.innerText='Bagus! ⭐';
+popup.style.display='block';
+createConfetti(area);
+setTimeout(()=>{
+popup.style.display='none';
+cat.innerText='🐱';
+currentQuestion=randomQuestion();
+question.innerText=currentQuestion.q;
+updatePlatforms(platforms,currentQuestion,cat,popup,question,playerNum,area,score);
+},1500);
+}else{
+cat.innerText='😿';
+popup.innerText='Coba Lagi';
+popup.style.display='block';
+setTimeout(()=>{
+popup.style.display='none';
+cat.innerText='🐱';
+},1000);
+}
+};
+platforms.appendChild(plat);
+});
+}
+
+function randomQuestion(){
+return questions[Math.floor(Math.random()*questions.length)];
+}
+
+function createConfetti(area){
+for(let i=0;i<15;i++){
+const conf=document.createElement('div');
+conf.className='confetti';
+conf.innerText='⭐';
+conf.style.left=Math.random()*100+'%';
+conf.style.top='20%';
+area.appendChild(conf);
+setTimeout(()=>conf.remove(),1000);
+}
+}
+
+function showHowToPlay(){
+alert('Cara Bermain:\n1. Pilih mode bermain.\n2. Klik daun dengan jawaban yang benar.\n3. Kucing akan melompat dan mendapat bintang.');
+}
+
+function toggleAudio(){
+const bgm=document.getElementById('bgm');
+audioOn=!audioOn;
+bgm.muted=!audioOn;
+}
+
+function toggleFullscreen(){
+if(!document.fullscreenElement){
+document.documentElement.requestFullscreen();
+}else{
+document.exitFullscreen();
+}
+}
+
+window.addEventListener('keydown',(e)=>{
+if(e.code==='Space'){
+document.querySelectorAll('.cat').forEach(cat=>{
+cat.style.transform='translateX(-50%) translateY(-20px)';
+setTimeout(()=>{
+cat.style.transform='translateX(-50%) translateY(0px)';
+},300);
+});
+}
+});
+</script>
+
+</body>
+</html>
